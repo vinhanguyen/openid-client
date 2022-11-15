@@ -1,4 +1,5 @@
 # openid-client
+Implementation of OpenID Connect in Angular.  See [ngrx](https://github.com/vinhanguyen/openid-client/tree/ngrx) branch for ngrx version.
 
 ## Configure src/environments
 Name | Value
