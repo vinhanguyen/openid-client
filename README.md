@@ -1,4 +1,4 @@
-# How to add OpenID Connect auth to Angular app
+# Implemention of OpenID Connect authentication in Angular
 
 ## Install dependencies
 ```
@@ -58,9 +58,4 @@ const routes: Routes = [
 ## Add auth guard to routes
 ```
 {path: 'profile', component: ProfileComponent, canActivate: [AuthGuard]},
-```
-
-## Start client
-```
-npm run start
 ```
