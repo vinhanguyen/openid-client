@@ -1,4 +1,4 @@
-# Implemention of OpenID Connect authentication in Angular
+# OpenID Connect authentication in Angular
 
 ## Install dependencies
 ```
