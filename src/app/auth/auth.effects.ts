@@ -2,11 +2,9 @@ import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { Store } from "@ngrx/store";
-import { decodeJwt } from "jose";
 import { concatMap, map, of, tap, withLatestFrom } from "rxjs";
-import { environment } from "src/environments/environment";
 import { selectFragment } from "../router.selectors";
-import { authenticate, callback, fail, getToken, nonceGenerated, stateRestored, stateSaved } from "./auth.actions";
+import { authenticate, callback, fail, validToken, nonceCreated, stateRestored, stateSaved } from "./auth.actions";
 import { selectAuth, selectNonce, selectUrl } from "./auth.selectors";
 import { AuthService } from "./auth.service";
 
@@ -17,15 +15,15 @@ export class AuthEffects {
     this.actions$.pipe(
       ofType(authenticate),
       map((action) => {
-        const nonce = this.service.getRandom();
-        return nonceGenerated({nonce});
+        const nonce = this.service.createNonce();
+        return nonceCreated({nonce});
       })
     )
   );
 
-  nonceGenerated$ = createEffect(() =>
+  nonceCreated$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(nonceGenerated),
+      ofType(nonceCreated),
       concatMap(action => of(action).pipe(
         withLatestFrom(
           this.store.select(selectAuth)
@@ -46,16 +44,7 @@ export class AuthEffects {
           this.store.select(selectNonce)
         ),
       )),
-      tap(([action, nonce]) => {
-        const {authorization_endpoint, client_id} = environment;
-        const response_type = 'token id_token';
-        const scope = 'openid email profile';
-    
-        const {protocol, host} = window.location;
-        const redirect_uri = `${protocol}//${host}/callback`;
-
-        window.location.href = `${authorization_endpoint}?response_type=${response_type}&client_id=${client_id}&scope=${scope}&redirect_uri=${redirect_uri}&nonce=${nonce}`;
-      })
+      tap(([action, nonce]) => this.service.sendAuthReq(nonce))
     ), {dispatch: false}
   );
 
@@ -82,23 +71,10 @@ export class AuthEffects {
           this.store.select(selectFragment)
         ),
       )),
-      map(([action, nonce, fragment = '']) => {
+      map(([action, nonce, fragment]) => {
         try {
-          const params = fragment.split('&').reduce((obj, param) => {
-            const [key, val] = param.split('=');
-            obj[key] = val;
-            return obj;
-          }, <any>{});
-
-          const {id_token, expires_in} = params;
-      
-          const {nonce: received} = decodeJwt(id_token);
-  
-          if (Number(received) !== nonce) {
-            return fail({error: 'Nonce mismatch'});
-          }
-
-          return getToken({id_token, expires_in});
+          const [id_token, expires_in] = this.service.parseValidateToken(fragment, nonce);
+          return validToken({id_token, expires_in});
         } catch(e) {
           return fail({error: 'Bad response'});
         }
@@ -106,9 +82,9 @@ export class AuthEffects {
     )
   );
 
-  getToken$ = createEffect(() =>
+  validToken$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(getToken),
+      ofType(validToken),
       concatMap(action => of(action).pipe(
         withLatestFrom(
           this.store.select(selectUrl)
