@@ -1,8 +1,11 @@
 # How to add OpenID Connect auth to Angular app
 
-## Install router store
+## Install dependencies
 ```
+npm install @ngrx/store
+npm install @ngrx/effects
 npm install @ngrx/router-store
+npm install jose
 ```
 
 ## Configure environment
