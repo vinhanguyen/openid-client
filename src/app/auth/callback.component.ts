@@ -1,28 +1,16 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { AuthService } from './auth.service';
+import { Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { callback } from './auth.actions';
 
 @Component({
   template: ``
 })
-export class CallbackComponent implements OnInit, OnDestroy {
-  fragmentSub!: Subscription;
+export class CallbackComponent implements OnInit {
 
-  constructor(private route: ActivatedRoute, private auth: AuthService) { }
+  constructor(private store: Store) { }
 
   ngOnInit(): void {
-    this.fragmentSub = this.route.fragment.subscribe(fragment => {
-      if (fragment) {
-        this.auth.handleResponse(fragment);
-      }
-    });
-  }
-
-  ngOnDestroy(): void {
-    if (this.fragmentSub) {
-      this.fragmentSub.unsubscribe();
-    }
+    this.store.dispatch(callback());
   }
 
 }
