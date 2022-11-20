@@ -3,7 +3,7 @@ import { Router } from "@angular/router";
 import { Actions, createEffect, ofType } from "@ngrx/effects";
 import { Store } from "@ngrx/store";
 import { concatMap, map, of, tap, withLatestFrom } from "rxjs";
-import { selectFragment } from "../router.selectors";
+import { selectFragment } from "./router.selectors";
 import { authenticate, callback, fail, validToken, nonceCreated, stateRestored, stateSaved } from "./auth.actions";
 import { selectAuth, selectNonce, selectUrl } from "./auth.selectors";
 import { AuthService } from "./auth.service";
